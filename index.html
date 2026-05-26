@@ -24,90 +24,30 @@
 
         .action-bar { display: flex; gap: 12px; margin-bottom: 16px; }
 
+        /* 按鈕基礎樣式 */
         .btn-main {
             flex: 1;
             padding: 14px 10px;
             font-size: 15px;
             font-weight: 900;
-            color: #000000 !important; /* 強制字體為黑色 */
-            background-color: #ffde4d;
             border: 3px solid #1a1a1a;
             border-radius: 12px;
             box-shadow: 4px 4px 0px #1a1a1a;
             cursor: pointer;
-        }
-
-        .btn-group-manage {
-            background-color: #a2c2e8;
-            color: #000000 !important; /* 強制字體為黑色 */
-        }
-
-        .search-input {
-            width: 100%;
-            padding: 12px 14px;
-            font-weight: 700;
-            border: 3px solid #1a1a1a;
-            border-radius: 10px;
-            margin-bottom: 16px;
-        }
-
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.5);
-            z-index: 1000; padding: 16px;
-        }
-
-        .modal-content {
-            background: #ffffff;
-            border: 3px solid #1a1a1a;
-            border-radius: 16px;
-            padding: 20px;
-            max-width: 500px;
-            margin: 40px auto;
-        }
-
-        .btn-submit {
-            width: 100%;
-            padding: 14px;
-            background-color: #bbf7d0;
-            border: 3px solid #1a1a1a;
-            border-radius: 10px;
-            font-weight: 900;
-            cursor: pointer;
-            margin-top: 10px;
-            color: #000000;
-        }
-
-        .member-card {
-            background-color: #d4e6f7;
-            border: 3px solid #1a1a1a;
-            border-radius: 14px;
-            padding: 16px;
-            margin-bottom: 15px;
-            box-shadow: 5px 5px 0px #1a1a1a;
-        }
-
-        .card-header { font-size: 18px; font-weight: 900; border-bottom: 2px dashed #1a1a1a; padding-bottom: 8px; margin-bottom: 10px; }
-
-        .stock-item {
-            background-color: #ffffff;
-            border: 2px solid #1a1a1a;
-            border-radius: 6px;
-            padding: 10px;
             display: flex;
-            justify-content: space-between;
+            justify-content: center;
             align-items: center;
         }
-
-        .status-select {
-            padding: 6px 4px;
-            font-weight: 800;
-            border: 2px solid #1a1a1a;
-            border-radius: 4px;
-            color: #000000;
-        }
+        
+        .search-input { width: 100%; padding: 12px 14px; font-weight: 700; border: 3px solid #1a1a1a; border-radius: 10px; margin-bottom: 16px; }
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; padding: 16px; }
+        .modal-content { background: #ffffff; border: 3px solid #1a1a1a; border-radius: 16px; padding: 20px; max-width: 500px; margin: 40px auto; }
+        .btn-submit { width: 100%; padding: 14px; background-color: #bbf7d0; border: 3px solid #1a1a1a; border-radius: 10px; font-weight: 900; cursor: pointer; color: #000; }
+        
+        .member-card { background-color: #d4e6f7; border: 3px solid #1a1a1a; border-radius: 14px; padding: 16px; margin-bottom: 15px; box-shadow: 5px 5px 0px #1a1a1a; }
+        .card-header { font-size: 18px; font-weight: 900; border-bottom: 2px dashed #1a1a1a; padding-bottom: 8px; margin-bottom: 10px; }
+        .stock-item { background-color: #ffffff; border: 2px solid #1a1a1a; border-radius: 6px; padding: 10px; display: flex; justify-content: space-between; align-items: center; }
+        .status-select { padding: 6px 4px; font-weight: 800; border: 2px solid #1a1a1a; border-radius: 4px; color: #000; }
     </style>
 </head>
 <body>
@@ -115,12 +55,11 @@
     <h1>📋 魚魚的委託管理中心</h1>
 
     <div class="action-bar">
-        <button class="btn-main" onclick="document.getElementById('importModal').style.display='block'">✨ 批量匯入</button>
-        <button class="btn-main btn-group-manage" onclick="document.getElementById('groupModal').style.display='block'">👨‍👩‍👧‍👦 綁定家族</button>
+        <button class="btn-main" style="background-color: #ffde4d; color: #000000;" onclick="document.getElementById('importModal').style.display='block'">✨ 批量匯入</button>
+        <button class="btn-main" style="background-color: #a2c2e8; color: #000000;" onclick="document.getElementById('groupModal').style.display='block'">👨‍👩‍👧‍👦 綁定家族</button>
     </div>
 
     <input type="text" id="search" class="search-input" placeholder="🔍 搜尋..." oninput="renderCards()">
-
     <main id="cardList"></main>
 
     <div id="importModal" class="modal">
@@ -142,12 +81,9 @@
                 let cols = line.split(/\t+| {2,}|\,/).map(t => t.trim());
                 if (cols.length >= 2 && /^\d{4}$/.test(cols[0])) {
                     rawStocks.push({
-                        id: cols[0],
-                        name: cols[1] || '未知',
-                        gift: cols[2] || '無',
-                        userName: cols[3] || '未填',
-                        date: cols[4] || new Date().toLocaleString(),
-                        status: 'success' // <--- 強制設為成功
+                        id: cols[0], name: cols[1] || '未知', gift: cols[2] || '無',
+                        userName: cols[3] || '未填', date: cols[4] || new Date().toLocaleString(),
+                        status: 'success'
                     });
                 }
             });
@@ -159,7 +95,7 @@
 
         function renderCards() {
             const list = document.getElementById('cardList');
-            list.innerHTML = '';
+            list.innerHTML = rawStocks.length === 0 ? '<div style="text-align:center; padding:40px; font-weight:800; border:2px dashed #1a1a1a;">目前還沒有資料唷！</div>' : '';
             rawStocks.forEach((item, idx) => {
                 list.innerHTML += `
                     <div class="member-card">
