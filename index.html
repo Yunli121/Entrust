@@ -9,7 +9,7 @@
             box-sizing: border-box;
             margin: 0;
             padding: 0;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Microsoft JhengHei", sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Microsoft JhengHei", sans-serif;
         }
 
         body {
@@ -20,133 +20,52 @@
             margin: 0 auto;
         }
 
-        header {
-            margin-bottom: 20px;
-        }
+        h1 { font-size: 24px; font-weight: 900; margin-bottom: 20px; }
 
-        h1 {
-            font-size: 24px;
-            font-weight: 900;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            margin-bottom: 4px;
-        }
-
-        .subtitle {
-            font-size: 13px;
-            color: #666;
-            font-weight: 700;
-        }
-
-        .action-bar {
-            display: flex;
-            gap: 12px;
-            margin-bottom: 16px;
-        }
+        .action-bar { display: flex; gap: 12px; margin-bottom: 16px; }
 
         .btn-main {
             flex: 1;
             padding: 14px 10px;
             font-size: 15px;
             font-weight: 900;
+            color: #000000 !important; /* 強制字體為黑色 */
             background-color: #ffde4d;
             border: 3px solid #1a1a1a;
             border-radius: 12px;
             box-shadow: 4px 4px 0px #1a1a1a;
             cursor: pointer;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 6px;
-        }
-
-        .btn-main:active {
-            transform: translate(4px, 4px);
-            box-shadow: 0px 0px 0px #1a1a1a;
         }
 
         .btn-group-manage {
             background-color: #a2c2e8;
-        }
-
-        .search-bar-container {
-            margin-bottom: 16px;
+            color: #000000 !important; /* 強制字體為黑色 */
         }
 
         .search-input {
             width: 100%;
             padding: 12px 14px;
-            font-size: 14px;
             font-weight: 700;
             border: 3px solid #1a1a1a;
             border-radius: 10px;
-            background-color: #ffffff;
-            box-shadow: 3px 3px 0px #1a1a1a;
-            outline: none;
+            margin-bottom: 16px;
         }
 
         .modal {
             display: none;
             position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0,0,0,0.5);
-            z-index: 1000;
-            padding: 16px;
-            overflow-y: auto;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000; padding: 16px;
         }
 
         .modal-content {
-            background-color: #ffffff;
+            background: #ffffff;
             border: 3px solid #1a1a1a;
             border-radius: 16px;
             padding: 20px;
-            box-shadow: 6px 6px 0px #1a1a1a;
             max-width: 500px;
             margin: 40px auto;
-            position: relative;
-        }
-
-        .modal-close {
-            position: absolute;
-            top: 15px;
-            right: 15px;
-            font-size: 20px;
-            font-weight: 900;
-            cursor: pointer;
-            border: 2px solid #1a1a1a;
-            width: 30px;
-            height: 30px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: #fff;
-            border-radius: 6px;
-        }
-
-        .modal-title {
-            font-size: 18px;
-            font-weight: 900;
-            margin-bottom: 16px;
-            border-bottom: 2px solid #1a1a1a;
-            padding-bottom: 8px;
-        }
-
-        .form-group {
-            margin-bottom: 14px;
-        }
-
-        .form-control {
-            width: 100%;
-            padding: 12px;
-            font-size: 14px;
-            font-weight: 700;
-            border: 2px solid #1a1a1a;
-            border-radius: 8px;
-            background-color: #fff;
         }
 
         .btn-submit {
@@ -155,35 +74,22 @@
             background-color: #bbf7d0;
             border: 3px solid #1a1a1a;
             border-radius: 10px;
-            font-size: 16px;
             font-weight: 900;
-            box-shadow: 3px 3px 0px #1a1a1a;
             cursor: pointer;
             margin-top: 10px;
+            color: #000000;
         }
-
-        .btn-tab {
-            padding: 6px 12px;
-            font-size: 13px;
-            font-weight: 800;
-            background-color: #fff;
-            border: 2px solid #1a1a1a;
-            border-radius: 6px;
-            box-shadow: 2px 2px 0px #1a1a1a;
-            cursor: pointer;
-        }
-
-        .btn-tab.active { background-color: #e2e8f0; }
 
         .member-card {
             background-color: #d4e6f7;
             border: 3px solid #1a1a1a;
             border-radius: 14px;
             padding: 16px;
+            margin-bottom: 15px;
             box-shadow: 5px 5px 0px #1a1a1a;
         }
 
-        .card-header { border-bottom: 2px dashed #1a1a1a; padding-bottom: 8px; margin-bottom: 10px; font-size: 18px; font-weight: 900; }
+        .card-header { font-size: 18px; font-weight: 900; border-bottom: 2px dashed #1a1a1a; padding-bottom: 8px; margin-bottom: 10px; }
 
         .stock-item {
             background-color: #ffffff;
@@ -197,42 +103,31 @@
 
         .status-select {
             padding: 6px 4px;
-            font-size: 12px;
             font-weight: 800;
             border: 2px solid #1a1a1a;
             border-radius: 4px;
+            color: #000000;
         }
-        
-        .empty-state { text-align: center; padding: 40px; font-weight: 800; border: 2px dashed #1a1a1a; }
     </style>
 </head>
 <body>
 
-    <header>
-        <h1>📋 魚魚的委託管理中心</h1>
-    </header>
+    <h1>📋 魚魚的委託管理中心</h1>
 
     <div class="action-bar">
-        <button class="btn-main" onclick="openModal('importModal')">✨ 批量匯入 Excel 資料</button>
-        <button class="btn-main btn-group-manage" onclick="openModal('groupModal')">👨‍👩‍👧‍👦 綁定家族群組</button>
+        <button class="btn-main" onclick="document.getElementById('importModal').style.display='block'">✨ 批量匯入</button>
+        <button class="btn-main btn-group-manage" onclick="document.getElementById('groupModal').style.display='block'">👨‍👩‍👧‍👦 綁定家族</button>
     </div>
 
-    <div class="search-bar-container">
-        <input type="text" id="searchKeyword" class="search-input" placeholder="🔍 搜尋..." oninput="renderCards()">
-    </div>
+    <input type="text" id="search" class="search-input" placeholder="🔍 搜尋..." oninput="renderCards()">
 
-    <main id="cardList">
-        <div class="empty-state">目前還沒有資料唷！</div>
-    </main>
+    <main id="cardList"></main>
 
-    <div class="modal" id="importModal">
+    <div id="importModal" class="modal">
         <div class="modal-content">
-            <span class="modal-close" onclick="closeModal('importModal')">&times;</span>
-            <div class="modal-title">📝 批量追加委託資料</div>
-            <form onsubmit="submitExcelForm(event)">
-                <textarea id="excelRaw" class="form-control" rows="10" placeholder="貼上 Excel 資料..." required></textarea>
-                <button type="submit" class="btn-submit">🚀 辨識並匯入</button>
-            </form>
+            <h3>📝 批量匯入</h3>
+            <textarea id="excelRaw" style="width:100%; height:150px; margin:10px 0; border:2px solid #1a1a1a;"></textarea>
+            <button class="btn-submit" onclick="submitExcel()">🚀 確定匯入</button>
         </div>
     </div>
 
@@ -240,38 +135,34 @@
         const STORAGE_KEY = 'fish_data_storage';
         let rawStocks = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
 
-        function submitExcelForm(e) {
-            e.preventDefault();
+        function submitExcel() {
             const text = document.getElementById('excelRaw').value;
             const lines = text.split('\n');
-            
             lines.forEach(line => {
-                let tokens = line.trim().split(/\t+| {2,}|\,/).map(t => t.trim()).filter(t => t.length > 0);
-                if (tokens.length >= 2 && /^\d{4}$/.test(tokens[0])) {
+                let cols = line.split(/\t+| {2,}|\,/).map(t => t.trim());
+                if (cols.length >= 2 && /^\d{4}$/.test(cols[0])) {
                     rawStocks.push({
-                        id: tokens[0],
-                        name: tokens[1] || '未知',
-                        gift: tokens[2] || '無',
-                        userName: tokens[3] || '未填',
-                        date: tokens[4] || new Date().toLocaleString(),
-                        status: 'success' // <--- 匯入即成功
+                        id: cols[0],
+                        name: cols[1] || '未知',
+                        gift: cols[2] || '無',
+                        userName: cols[3] || '未填',
+                        date: cols[4] || new Date().toLocaleString(),
+                        status: 'success' // <--- 強制設為成功
                     });
                 }
             });
-            
             localStorage.setItem(STORAGE_KEY, JSON.stringify(rawStocks));
-            closeModal('importModal');
+            document.getElementById('importModal').style.display = 'none';
             document.getElementById('excelRaw').value = '';
             renderCards();
         }
 
         function renderCards() {
             const list = document.getElementById('cardList');
-            list.innerHTML = rawStocks.length === 0 ? '<div class="empty-state">目前還沒有資料唷！</div>' : '';
-            
+            list.innerHTML = '';
             rawStocks.forEach((item, idx) => {
                 list.innerHTML += `
-                    <div class="member-card" style="margin-bottom:15px;">
+                    <div class="member-card">
                         <div class="card-header">👤 ${item.userName}</div>
                         <div class="stock-item">
                             <div><strong>${item.id} ${item.name}</strong><br><small>🎁 ${item.gift} | 📅 ${item.date}</small></div>
@@ -289,9 +180,6 @@
             rawStocks[idx].status = val;
             localStorage.setItem(STORAGE_KEY, JSON.stringify(rawStocks));
         }
-
-        function openModal(id) { document.getElementById(id).style.display = 'block'; }
-        function closeModal(id) { document.getElementById(id).style.display = 'none'; }
 
         renderCards();
     </script>
