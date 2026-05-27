@@ -1,86 +1,53 @@
 <!DOCTYPE html>
-<html lang="zh-TW">
+<html>
 <head>
     <meta charset="UTF-8">
-    <title>家族委託管理系統</title>
+    <title>委託管理</title>
     <style>
-        body { font-family: -apple-system, sans-serif; background: #f0f2f5; padding: 20px; max-width: 600px; margin: auto; }
-        .card { background: white; padding: 15px; margin-bottom: 15px; border-radius: 12px; border-left: 6px solid #ffde4d; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-        .stock-item { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid #eee; }
-        h1 { text-align: center; }
-        .btn-sync { width: 100%; padding: 10px; background: #007bff; color: white; border: none; border-radius: 8px; cursor: pointer; margin-bottom: 15px; }
+        .card { border: 1px solid #ccc; padding: 10px; margin: 10px; border-radius: 8px; }
     </style>
 </head>
 <body>
-
-    <h1>📋 家族委託管理</h1>
-    <button class="btn-sync" onclick="location.reload()">🔄 同步最新資料</button>
-    <div id="list">讀取中...</div>
-
+    <div id="app">讀取中...</div>
     <script>
-        // 【重要】填入你最新的 Google Apps Script 部署網址
-        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbx9mo8aRflpbIH0tuNhzijZpdLp4paZKOUWUCFWXbBhv_svtdaXPmOk7PN8ER8_opZa/exec";
-        let rawData = [];
-
+        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbx9mo8aRflpbIH0tuNhzijZpdLp4paZKOUWUCFWXbBhv_svtdaXPmOk7PN8ER8_opZa/exec"; 
+        
         async function init() {
-            try {
-                // 使用 POST 方式讀取以避開 CORS 限制
-                const res = await fetch(WEB_APP_URL, {
-                    method: 'POST',
-                    body: JSON.stringify({ type: 'get' })
-                });
-                rawData = await res.json();
-                render();
-            } catch(e) {
-                document.getElementById('list').innerHTML = "讀取失敗，請確認網址與部署設定";
-            }
+            // 直接用 GET 讀取，配合 GAS 的 doGet 輸出純文字
+            const res = await fetch(WEB_APP_URL);
+            const data = await res.json();
+            render(data);
         }
 
-        function render() {
-            const list = document.getElementById('list');
+        function render(data) {
             const groups = {};
-            
-            // 處理資料 (H欄 r[7] 是家族)
-            rawData.slice(1).forEach(r => {
-                const g = r[7] || "未分組"; 
+            data.slice(1).forEach(r => {
+                const g = r[7] || "未分組"; // H欄是家族
                 if(!groups[g]) groups[g] = [];
-                
-                let d = r[4];
-                if(d && d.toString().includes('T')) d = new Date(d).toLocaleString();
-                
-                groups[g].push({id:r[0], name:r[1], time:d, status:r[5]});
+                groups[g].push({id:r[0], name:r[1], time:r[4], status:r[5]});
             });
-            
-            list.innerHTML = Object.keys(groups).map(g => {
-                const counts = {};
-                groups[g].forEach(item => counts[item.name] = (counts[item.name] || 0) + 1);
-                const stats = Object.keys(counts).map(k => `${k}(${counts[k]}人)`).join('、');
 
-                return `
-                    <div class="card">
-                        <h3>🏠 家族：${g}</h3>
-                        <small style="color: #666;">📊 統計：${stats || '無資料'}</small>
-                        ${groups[g].map(i => `
-                            <div class="stock-item">
-                                <div><strong>${i.id} ${i.name}</strong><br><small>${i.time}</small></div>
-                                <input type="text" placeholder="修改家族..." style="width:80px" 
-                                       onchange="setGroup('${i.id}', '${i.time}', this.value)">
-                            </div>
-                        `).join('')}
-                    </div>
-                `;
-            }).join('');
+            document.getElementById('app').innerHTML = Object.keys(groups).map(g => `
+                <div class="card">
+                    <h3>${g}</h3>
+                    ${groups[g].map(i => `
+                        <div>
+                            ${i.id} ${i.name} 
+                            <input onchange="setGroup('${i.id}', '${i.time}', this.value)" placeholder="輸入家族">
+                        </div>
+                    `).join('')}
+                </div>
+            `).join('');
         }
 
         async function setGroup(id, time, groupName) {
-            await fetch(WEB_APP_URL, { 
-                method: 'POST', 
-                body: JSON.stringify({ type:'setGroup', id, time, groupName }) 
+            await fetch(WEB_APP_URL, {
+                method: 'POST',
+                body: JSON.stringify({ type: 'setGroup', id, time, groupName })
             });
-            alert('已成功設定家族：' + groupName);
+            alert('已更新');
             location.reload();
         }
-
         init();
     </script>
 </body>
