@@ -9,6 +9,7 @@
         body { background-color: #f7fafc; padding: 16px; color: #1a1a1a; max-width: 600px; margin: 0 auto; }
         .action-bar { display: flex; gap: 12px; margin-bottom: 16px; }
         .btn-main { flex: 1; padding: 14px; font-size: 15px; font-weight: 900; background-color: #ffde4d; border: 3px solid #1a1a1a; border-radius: 12px; box-shadow: 4px 4px 0px #1a1a1a; cursor: pointer; color: #000 !important; }
+        .btn-group-manage { background-color: #a2c2e8; }
         .btn-clear { background: #fecaca; border: 2px solid #1a1a1a; padding: 4px 8px; font-weight: 800; cursor: pointer; }
         .search-input { width: 100%; padding: 12px; border: 3px solid #1a1a1a; border-radius: 10px; margin-bottom: 16px; font-weight: 700; }
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; padding: 16px; }
@@ -24,11 +25,15 @@
     <h1>📋 魚魚的委託管理中心</h1>
     <div class="action-bar">
         <button class="btn-main" onclick="document.getElementById('m').style.display='block'">✨ 批量匯入</button>
+        <button class="btn-main btn-group-manage" onclick="document.getElementById('gm').style.display='block'">👨‍👩‍👧‍👦 綁定家族</button>
+    </div>
+
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+        <div id="stats" style="font-weight:bold;"></div>
         <button class="btn-clear" onclick="clearData()">🗑️ 清空資料</button>
     </div>
 
     <input type="text" id="search" class="search-input" placeholder="🔍 搜尋..." oninput="render()">
-    <div id="stats" style="margin-bottom:10px; font-weight:bold;"></div>
     <main id="list"></main>
 
     <div id="m" class="modal">
@@ -39,8 +44,18 @@
         </div>
     </div>
 
+    <div id="gm" class="modal">
+        <div class="modal-content">
+            <h3>👨‍👩‍👧‍👦 綁定家族群組</h3>
+            <p style="margin:10px 0; font-size: 14px;">(輸入人名，若在群組內會自動分組)</p>
+            <textarea id="gt" style="width:100%; height:100px; border:2px solid #1a1a1a;"></textarea>
+            <button class="btn-main" style="width:100%;" onclick="saveGroup()">💾 儲存綁定</button>
+        </div>
+    </div>
+
     <script>
         let data = JSON.parse(localStorage.getItem('f_data') || '[]');
+        let groups = JSON.parse(localStorage.getItem('f_groups') || '{}');
 
         function imp() {
             const text = document.getElementById('t').value;
@@ -52,27 +67,32 @@
             });
             localStorage.setItem('f_data', JSON.stringify(data));
             document.getElementById('m').style.display = 'none';
-            document.getElementById('t').value = '';
             render();
         }
 
-        function clearData() { if(confirm('確定清空所有資料嗎？')) { data = []; localStorage.removeItem('f_data'); render(); } }
+        function saveGroup() {
+            const text = document.getElementById('gt').value;
+            localStorage.setItem('f_groups', JSON.stringify({ names: text.split('\n') }));
+            document.getElementById('gm').style.display = 'none';
+            render();
+        }
+
+        function clearData() { if(confirm('確定清空？')) { data = []; localStorage.removeItem('f_data'); render(); } }
 
         function render() {
             const kw = document.getElementById('search').value.toLowerCase();
             const filtered = data.filter(i => (i.id+i.name+i.user+i.gift).toLowerCase().includes(kw));
             document.getElementById('stats').innerText = `總計：${filtered.length} 筆`;
             
-            // 分組邏輯
-            const groups = filtered.reduce((acc, curr) => {
+            const groupsMap = filtered.reduce((acc, curr) => {
                 (acc[curr.user] = acc[curr.user] || []).push(curr);
                 return acc;
             }, {});
 
-            document.getElementById('list').innerHTML = Object.keys(groups).map(user => `
+            document.getElementById('list').innerHTML = Object.keys(groupsMap).map(user => `
                 <div class="member-card">
-                    <div class="card-header">👤 ${user} <span>(${groups[user].length}筆)</span></div>
-                    ${groups[user].map((item, idx) => `
+                    <div class="card-header">👤 ${user} <span>(${groupsMap[user].length}筆)</span></div>
+                    ${groupsMap[user].map((item, idx) => `
                         <div class="stock-item">
                             <div><strong>${item.id} ${item.name}</strong><br><small>🎁 ${item.gift} | 📅 ${item.time}</small></div>
                             <select class="status-select" onchange="up('${item.id}-${item.time}', this.value)">
@@ -93,4 +113,4 @@
         render();
     </script>
 </body>
-</html>ㄒ
+</html>
