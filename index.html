@@ -5,58 +5,35 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>魚魚的委託管理系統</title>
     <style>
-        *, *::before, *::after {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Microsoft JhengHei", sans-serif;
-        }
-
-        body {
-            background-color: #f7fafc;
-            padding: 16px;
-            color: #1a1a1a;
-            max-width: 600px;
-            margin: 0 auto;
-        }
-
-        h1 { font-size: 24px; font-weight: 900; margin-bottom: 20px; }
-
-        .action-bar { display: flex; gap: 12px; margin-bottom: 16px; }
-
-        /* 按鈕基礎樣式 */
-        .btn-main {
-            flex: 1;
-            padding: 14px 10px;
-            font-size: 15px;
-            font-weight: 900;
-            border: 3px solid #1a1a1a;
-            border-radius: 12px;
-            box-shadow: 4px 4px 0px #1a1a1a;
-            cursor: pointer;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, sans-serif; }
+        body { background-color: #f7fafc; padding: 16px; color: #1a1a1a; max-width: 600px; margin: 0 auto; }
         
-        .search-input { width: 100%; padding: 12px 14px; font-weight: 700; border: 3px solid #1a1a1a; border-radius: 10px; margin-bottom: 16px; }
+        .action-bar { display: flex; gap: 12px; margin-bottom: 16px; }
+        .btn-main {
+            flex: 1; padding: 14px; font-size: 15px; font-weight: 900;
+            background-color: #ffde4d; border: 3px solid #1a1a1a;
+            border-radius: 12px; box-shadow: 4px 4px 0px #1a1a1a;
+            cursor: pointer; color: #000000 !important; /* 強制深色 */
+        }
+        .btn-group-manage { background-color: #a2c2e8; color: #000000 !important; }
+        
+        .search-input { width: 100%; padding: 12px; border: 3px solid #1a1a1a; border-radius: 10px; margin-bottom: 16px; font-weight: 800; }
+        
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; padding: 16px; }
-        .modal-content { background: #ffffff; border: 3px solid #1a1a1a; border-radius: 16px; padding: 20px; max-width: 500px; margin: 40px auto; }
-        .btn-submit { width: 100%; padding: 14px; background-color: #bbf7d0; border: 3px solid #1a1a1a; border-radius: 10px; font-weight: 900; cursor: pointer; color: #000; }
+        .modal-content { background: #fff; border: 3px solid #1a1a1a; border-radius: 16px; padding: 20px; max-width: 500px; margin: 40px auto; }
         
         .member-card { background-color: #d4e6f7; border: 3px solid #1a1a1a; border-radius: 14px; padding: 16px; margin-bottom: 15px; box-shadow: 5px 5px 0px #1a1a1a; }
         .card-header { font-size: 18px; font-weight: 900; border-bottom: 2px dashed #1a1a1a; padding-bottom: 8px; margin-bottom: 10px; }
         .stock-item { background-color: #ffffff; border: 2px solid #1a1a1a; border-radius: 6px; padding: 10px; display: flex; justify-content: space-between; align-items: center; }
-        .status-select { padding: 6px 4px; font-weight: 800; border: 2px solid #1a1a1a; border-radius: 4px; color: #000; }
+        .status-select { padding: 6px; font-weight: 900; border: 2px solid #1a1a1a; border-radius: 4px; color: #000000; }
     </style>
 </head>
 <body>
 
-    <h1>📋 魚魚的委託管理中心</h1>
-
+    <h1>📋 零股委託管理中心 📋</h1>
     <div class="action-bar">
-        <button class="btn-main" style="background-color: #ffde4d; color: #000000;" onclick="document.getElementById('importModal').style.display='block'">✨ 批量匯入</button>
-        <button class="btn-main" style="background-color: #a2c2e8; color: #000000;" onclick="document.getElementById('groupModal').style.display='block'">👨‍👩‍👧‍👦 綁定家族</button>
+        <button class="btn-main" onclick="document.getElementById('importModal').style.display='block'">✨ 批量匯入</button>
+        <button class="btn-main btn-group-manage" onclick="document.getElementById('groupModal').style.display='block'">👨‍👩‍👧‍👦 綁定家族</button>
     </div>
 
     <input type="text" id="search" class="search-input" placeholder="🔍 搜尋..." oninput="renderCards()">
@@ -66,23 +43,34 @@
         <div class="modal-content">
             <h3>📝 批量匯入</h3>
             <textarea id="excelRaw" style="width:100%; height:150px; margin:10px 0; border:2px solid #1a1a1a;"></textarea>
-            <button class="btn-submit" onclick="submitExcel()">🚀 確定匯入</button>
+            <button class="btn-main" style="width:100%; background:#bbf7d0;" onclick="submitExcel()">🚀 確定匯入</button>
         </div>
     </div>
 
     <script>
         const STORAGE_KEY = 'fish_data_storage';
-        let rawStocks = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+        
+        // 【防當機載入】如果資料讀取失敗，直接重置為空陣列
+        let rawStocks = [];
+        try {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (saved) rawStocks = JSON.parse(saved);
+        } catch (e) {
+            console.error("資料異常，已重置");
+            localStorage.removeItem(STORAGE_KEY);
+        }
 
         function submitExcel() {
             const text = document.getElementById('excelRaw').value;
+            if(!text.trim()) return;
+            
             const lines = text.split('\n');
             lines.forEach(line => {
-                let cols = line.split(/\t+| {2,}|\,/).map(t => t.trim());
+                let cols = line.trim().split(/\t+| {2,}|\,/).map(t => t.trim());
                 if (cols.length >= 2 && /^\d{4}$/.test(cols[0])) {
                     rawStocks.push({
-                        id: cols[0], name: cols[1] || '未知', gift: cols[2] || '無',
-                        userName: cols[3] || '未填', date: cols[4] || new Date().toLocaleString(),
+                        id: cols[0], name: cols[1], gift: cols[2] || '',
+                        userName: cols[3] || '無', date: cols[4] || new Date().toLocaleString(),
                         status: 'success'
                     });
                 }
@@ -94,18 +82,21 @@
         }
 
         function renderCards() {
+            const keyword = document.getElementById('search').value.toLowerCase();
             const list = document.getElementById('cardList');
-            list.innerHTML = rawStocks.length === 0 ? '<div style="text-align:center; padding:40px; font-weight:800; border:2px dashed #1a1a1a;">目前還沒有資料唷！</div>' : '';
-            rawStocks.forEach((item, idx) => {
+            list.innerHTML = '';
+            
+            rawStocks.filter(i => (i.id+i.name+i.userName).toLowerCase().includes(keyword))
+            .forEach((item, idx) => {
                 list.innerHTML += `
                     <div class="member-card">
                         <div class="card-header">👤 ${item.userName}</div>
                         <div class="stock-item">
                             <div><strong>${item.id} ${item.name}</strong><br><small>🎁 ${item.gift} | 📅 ${item.date}</small></div>
                             <select class="status-select" onchange="updateStatus(${idx}, this.value)">
-                                <option value="success" ${item.status=='success'?'selected':''}>✅ 成功</option>
-                                <option value="fail" ${item.status=='fail'?'selected':''}>❌ 失敗</option>
-                                <option value="fee" ${item.status=='fee'?'selected':''}>⚠️ 加費</option>
+                                <option value="success" ${item.status=='success'?'selected':''}>✅ 委託成功</option>
+                                <option value="fail" ${item.status=='fail'?'selected':''}>❌ 委託失敗</option>
+                                <option value="fee" ${item.status=='fee'?'selected':''}>⚠️ 加費5元</option>
                             </select>
                         </div>
                     </div>`;
