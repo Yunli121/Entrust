@@ -5,36 +5,35 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>魚魚的委託管理系統</title>
     <style>
-        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Microsoft JhengHei", sans-serif; }
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
         body { background-color: #f7fafc; padding: 16px; color: #1a1a1a; max-width: 600px; margin: 0 auto; }
-        h1 { font-size: 24px; font-weight: 900; margin-bottom: 20px; }
         .action-bar { display: flex; gap: 12px; margin-bottom: 16px; }
-        .btn-main { flex: 1; padding: 14px 10px; font-size: 15px; font-weight: 900; border: 3px solid #1a1a1a; border-radius: 12px; box-shadow: 4px 4px 0px #1a1a1a; cursor: pointer; display: flex; justify-content: center; align-items: center; color: #000 !important; }
-        .btn-group-manage { background-color: #a2c2e8; }
-        .search-input { width: 100%; padding: 12px 14px; font-weight: 700; border: 3px solid #1a1a1a; border-radius: 10px; margin-bottom: 16px; }
+        .btn-main { flex: 1; padding: 14px; font-size: 15px; font-weight: 900; background-color: #ffde4d; border: 3px solid #1a1a1a; border-radius: 12px; box-shadow: 4px 4px 0px #1a1a1a; cursor: pointer; color: #000 !important; }
+        .btn-clear { background: #fecaca; border: 2px solid #1a1a1a; padding: 4px 8px; font-weight: 800; cursor: pointer; }
+        .search-input { width: 100%; padding: 12px; border: 3px solid #1a1a1a; border-radius: 10px; margin-bottom: 16px; font-weight: 700; }
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; padding: 16px; }
-        .modal-content { background: #ffffff; border: 3px solid #1a1a1a; border-radius: 16px; padding: 20px; max-width: 500px; margin: 40px auto; }
+        .modal-content { background: #fff; border: 3px solid #1a1a1a; border-radius: 16px; padding: 20px; max-width: 500px; margin: 40px auto; }
         .member-card { background-color: #d4e6f7; border: 3px solid #1a1a1a; border-radius: 14px; padding: 16px; margin-bottom: 15px; box-shadow: 5px 5px 0px #1a1a1a; }
-        .card-header { font-size: 18px; font-weight: 900; border-bottom: 2px dashed #1a1a1a; padding-bottom: 8px; margin-bottom: 10px; }
-        .stock-item { background-color: #ffffff; border: 2px solid #1a1a1a; border-radius: 6px; padding: 10px; display: flex; justify-content: space-between; align-items: center; }
-        .status-select { padding: 6px 4px; font-weight: 900; border: 2px solid #1a1a1a; border-radius: 4px; color: #000; cursor: pointer; }
+        .card-header { font-size: 18px; font-weight: 900; border-bottom: 2px dashed #1a1a1a; padding-bottom: 8px; margin-bottom: 10px; display: flex; justify-content: space-between; }
+        .stock-item { background-color: #ffffff; border: 2px solid #1a1a1a; border-radius: 6px; padding: 10px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+        .status-select { padding: 6px; font-weight: 900; border: 2px solid #1a1a1a; border-radius: 4px; color: #000; cursor: pointer; }
     </style>
 </head>
 <body>
 
     <h1>📋 魚魚的委託管理中心</h1>
-
     <div class="action-bar">
-        <button class="btn-main" style="background-color: #ffde4d;" onclick="document.getElementById('m').style.display='block'">✨ 批量匯入</button>
-        <button class="btn-main btn-group-manage" onclick="alert('功能開發中')">👨‍👩‍👧‍👦 綁定家族</button>
+        <button class="btn-main" onclick="document.getElementById('m').style.display='block'">✨ 批量匯入</button>
+        <button class="btn-clear" onclick="clearData()">🗑️ 清空資料</button>
     </div>
 
-    <input type="text" id="search" class="search-input" placeholder="🔍 搜尋股號、股名、人名..." oninput="render()">
+    <input type="text" id="search" class="search-input" placeholder="🔍 搜尋..." oninput="render()">
+    <div id="stats" style="margin-bottom:10px; font-weight:bold;"></div>
     <main id="list"></main>
 
     <div id="m" class="modal">
         <div class="modal-content">
-            <h3>📝 批量匯入委託</h3>
+            <h3>📝 批量匯入</h3>
             <textarea id="t" style="width:100%; height:150px; margin:10px 0; border:2px solid #1a1a1a; padding:10px;"></textarea>
             <button class="btn-main" style="width:100%; background:#bbf7d0;" onclick="imp()">🚀 確定匯入</button>
         </div>
@@ -45,18 +44,10 @@
 
         function imp() {
             const text = document.getElementById('t').value;
-            const lines = text.split('\n');
-            lines.forEach(line => {
+            text.split('\n').forEach(line => {
                 let c = line.trim().split(/\t+| {2,}|\,/);
                 if (c.length >= 2 && /^\d{4}$/.test(c[0].trim())) {
-                    data.push({ 
-                        id: c[0].trim(),           // 股號
-                        name: c[1] ? c[1].trim() : '未知', // 股名
-                        gift: c[2] ? c[2].trim() : '無',   // 紀念品
-                        user: c[3] ? c[3].trim() : '無',   // 人名
-                        time: new Date().toLocaleString(), // 日期
-                        status: 'success'                  // 自動成功
-                    });
+                    data.push({ id: c[0].trim(), name: c[1].trim(), gift: c[2]||'無', user: c[3]||'無', time: new Date().toLocaleString(), status: 'success' });
                 }
             });
             localStorage.setItem('f_data', JSON.stringify(data));
@@ -65,31 +56,41 @@
             render();
         }
 
+        function clearData() { if(confirm('確定清空所有資料嗎？')) { data = []; localStorage.removeItem('f_data'); render(); } }
+
         function render() {
-            const keyword = document.getElementById('search').value.toLowerCase();
-            document.getElementById('list').innerHTML = data.filter(i => 
-                (i.id + i.name + i.user + i.gift).toLowerCase().includes(keyword)
-            )
-            .map((item, i) => `
+            const kw = document.getElementById('search').value.toLowerCase();
+            const filtered = data.filter(i => (i.id+i.name+i.user+i.gift).toLowerCase().includes(kw));
+            document.getElementById('stats').innerText = `總計：${filtered.length} 筆`;
+            
+            // 分組邏輯
+            const groups = filtered.reduce((acc, curr) => {
+                (acc[curr.user] = acc[curr.user] || []).push(curr);
+                return acc;
+            }, {});
+
+            document.getElementById('list').innerHTML = Object.keys(groups).map(user => `
                 <div class="member-card">
-                    <div class="card-header">👤 ${item.user}</div>
-                    <div class="stock-item">
-                        <div>
-                            <strong>${item.id} ${item.name}</strong><br>
-                            <small>🎁 ${item.gift} | 📅 ${item.time}</small>
+                    <div class="card-header">👤 ${user} <span>(${groups[user].length}筆)</span></div>
+                    ${groups[user].map((item, idx) => `
+                        <div class="stock-item">
+                            <div><strong>${item.id} ${item.name}</strong><br><small>🎁 ${item.gift} | 📅 ${item.time}</small></div>
+                            <select class="status-select" onchange="up('${item.id}-${item.time}', this.value)">
+                                <option value="success" ${item.status=='success'?'selected':''}>✅ 成功</option>
+                                <option value="fail" ${item.status=='fail'?'selected':''}>❌ 失敗</option>
+                                <option value="fee" ${item.status=='fee'?'selected':''}>⚠️ 加費</option>
+                            </select>
                         </div>
-                        <select class="status-select" onchange="up(${i}, this.value)">
-                            <option value="success" ${item.status=='success'?'selected':''}>✅ 成功</option>
-                            <option value="fail" ${item.status=='fail'?'selected':''}>❌ 失敗</option>
-                            <option value="fee" ${item.status=='fee'?'selected':''}>⚠️ 加費</option>
-                        </select>
-                    </div>
+                    `).join('')}
                 </div>
             `).join('');
         }
 
-        function up(i, v) { data[i].status = v; localStorage.setItem('f_data', JSON.stringify(data)); }
+        function up(idTime, val) {
+            data.find(i => (i.id+'-'+i.time) === idTime).status = val;
+            localStorage.setItem('f_data', JSON.stringify(data));
+        }
         render();
     </script>
 </body>
-</html>
+</html>ㄒ
