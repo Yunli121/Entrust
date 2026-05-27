@@ -2,17 +2,17 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <title>魚魚的委託管理系統</title>
+    <title>魚魚的委託管理系統 (雲端版)</title>
     <style>
-        /* 樣式保持你原本的精簡風格 */
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
         body { background-color: #f7fafc; padding: 16px; color: #1a1a1a; max-width: 600px; margin: 0 auto; }
         .action-bar { display: flex; gap: 12px; margin-bottom: 16px; }
         .btn-main { flex: 1; padding: 14px; font-size: 15px; font-weight: 900; background-color: #ffde4d; border: 3px solid #1a1a1a; border-radius: 12px; box-shadow: 4px 4px 0px #1a1a1a; cursor: pointer; color: #000 !important; }
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; padding: 16px; }
         .modal-content { background: #fff; border: 3px solid #1a1a1a; border-radius: 16px; padding: 20px; max-width: 500px; margin: 40px auto; }
-        .member-card { background-color: #d4e6f7; border: 3px solid #1a1a1a; border-radius: 14px; padding: 16px; margin-bottom: 15px; }
-        .status-select { padding: 6px; font-weight: 900; border: 2px solid #1a1a1a; border-radius: 4px; cursor: pointer; }
+        .member-card { background-color: #d4e6f7; border: 3px solid #1a1a1a; border-radius: 14px; padding: 16px; margin-bottom: 15px; box-shadow: 5px 5px 0px #1a1a1a; }
+        .stock-item { background: #fff; padding: 10px; border: 2px solid #000; margin-top: 8px; display: flex; justify-content: space-between; align-items: center; }
+        .status-select { padding: 6px; font-weight: 900; border: 2px solid #1a1a1a; cursor: pointer; }
     </style>
 </head>
 <body>
@@ -20,64 +20,77 @@
     <h1>📋 魚魚的委託管理中心</h1>
     <div class="action-bar">
         <button class="btn-main" onclick="document.getElementById('m').style.display='block'">✨ 批量匯入</button>
-        <button class="btn-main" style="background:#a2c2e8;" onclick="document.getElementById('gm').style.display='block'">👨‍👩‍👧‍👦 綁定家族</button>
+        <button class="btn-main" style="background:#a2c2e8;" onclick="location.reload()">🔄 重新整理</button>
     </div>
 
-    <input type="text" id="search" style="width:100%; padding:12px; border:3px solid #1a1a1a; border-radius:10px;" placeholder="🔍 搜尋..." oninput="render()">
-    <main id="list"></main>
+    <input type="text" id="search" style="width:100%; padding:12px; border:3px solid #1a1a1a; border-radius:10px; margin-bottom:16px;" placeholder="🔍 搜尋..." oninput="displayData()">
+    <main id="list">讀取資料中...</main>
 
     <div id="m" class="modal"><div class="modal-content">
-        <h3>📝 批量匯入 (貼上 Excel 欄位)</h3>
+        <h3>📝 批量匯入 (Excel 貼上)</h3>
         <textarea id="t" style="width:100%; height:150px; border:2px solid #1a1a1a;"></textarea>
         <button class="btn-main" style="width:100%; background:#bbf7d0;" onclick="imp()">🚀 確定匯入</button>
     </div></div>
 
-    <div id="gm" class="modal"><div class="modal-content">
-        <h3>👨‍👩‍👧‍👦 設定家族成員</h3>
-        <textarea id="gt" placeholder="每行輸入一個名字..." style="width:100%; height:100px; border:2px solid #1a1a1a;"></textarea>
-        <button class="btn-main" style="width:100%;" onclick="saveGroup()">💾 儲存名單</button>
-    </div></div>
-
     <script>
-        let data = JSON.parse(localStorage.getItem('f_data') || '[]');
-        let groupNames = JSON.parse(localStorage.getItem('f_groups') || '[]');
+        // 【在此填入你的 Google Web App URL】
+        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbx9mo8aRflpbIH0tuNhzijZpdLp4paZKOUWUCFWXbBhv_svtdaXPmOk7PN8ER8_opZa/exec";
+        let rawData = [];
 
-        function imp() {
-            const text = document.getElementById('t').value;
-            text.split('\n').forEach(line => {
-                let c = line.trim().split(/\t+| {2,}|\,/);
-                if (c.length >= 2 && /^\d{4}$/.test(c[0].trim())) {
-                    data.push({ 
-                        id: c[0].trim(), name: c[1].trim(), gift: c[2]||'無', 
-                        user: c[3]||'無', time: c[4]||new Date().toLocaleString(), status: 'success' 
-                    });
+        async function init() {
+            const res = await fetch(WEB_APP_URL);
+            rawData = await res.json();
+            displayData();
+        }
+
+        function displayData() {
+            const kw = document.getElementById('search').value.toLowerCase();
+            const list = document.getElementById('list');
+            const groups = {};
+            
+            // 跳過第一列標題，處理剩餘資料
+            rawData.slice(1).forEach((row, idx) => {
+                const [id, name, gift, user, time, status] = row;
+                if ((id+name+user+gift).toLowerCase().includes(kw)) {
+                    if (!groups[user]) groups[user] = [];
+                    groups[user].push({ id, name, gift, time, status, rowIdx: idx + 2 });
                 }
             });
-            localStorage.setItem('f_data', JSON.stringify(data));
-            document.getElementById('m').style.display = 'none';
-            render();
-        }
 
-        function saveGroup() {
-            groupNames = document.getElementById('gt').value.split('\n').map(n => n.trim());
-            localStorage.setItem('f_groups', JSON.stringify(groupNames));
-            document.getElementById('gm').style.display = 'none';
-        }
-
-        function render() {
-            const list = document.getElementById('list');
-            list.innerHTML = groupNames.map(g => `
+            list.innerHTML = Object.keys(groups).map(user => `
                 <div class="member-card">
-                    <div style="font-weight:900; margin-bottom:10px;">👤 ${g}</div>
-                    ${data.filter(i => i.user === g).map((item, i) => `
-                        <div style="background:#fff; padding:8px; border:2px solid #000; margin-bottom:5px;">
-                            ${item.id} ${item.name} | 📅 ${item.time}
+                    <div style="font-weight:900; margin-bottom:10px;">👤 ${user}</div>
+                    ${groups[user].map(item => `
+                        <div class="stock-item">
+                            <div><strong>${item.id} ${item.name}</strong><br><small>🎁 ${item.gift} | 📅 ${item.time}</small></div>
+                            <select class="status-select" onchange="up('${item.id}', '${item.time}', this.value)">
+                                <option value="success" ${item.status=='success'?'selected':''}>✅ 成功</option>
+                                <option value="fail" ${item.status=='fail'?'selected':''}>❌ 失敗</option>
+                            </select>
                         </div>
                     `).join('')}
                 </div>
             `).join('');
         }
-        render();
+
+        async function imp() {
+            const text = document.getElementById('t').value;
+            const lines = text.split('\n');
+            for(let line of lines) {
+                let c = line.split(/\t|,/);
+                if(c.length >= 2) {
+                    await fetch(WEB_APP_URL, { method: 'POST', body: JSON.stringify({ type:'add', id:c[0], name:c[1], gift:c[2]||'無', user:c[3]||'無', time:new Date().toLocaleString(), status:'success' }) });
+                }
+            }
+            alert('匯入完成！');
+            location.reload();
+        }
+
+        async function up(id, time, val) {
+            await fetch(WEB_APP_URL, { method: 'POST', body: JSON.stringify({ type:'update', id:id, time:time, status:val }) });
+        }
+
+        init();
     </script>
 </body>
 </html>
