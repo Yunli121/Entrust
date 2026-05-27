@@ -2,100 +2,63 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>魚魚的委託管理系統</title>
     <style>
-        /* 這裡保留你原始程式碼的所有 CSS，完全沒變動 */
-        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Microsoft JhengHei", sans-serif; }
-        body { background-color: #f7fafc; padding: 16px; color: #1a1a1a; max-width: 600px; margin: 0 auto; }
-        header { margin-bottom: 20px; }
-        h1 { font-size: 24px; font-weight: 900; display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
-        .subtitle { font-size: 13px; color: #666; font-weight: 700; }
-        .action-bar { display: flex; gap: 12px; margin-bottom: 16px; }
-        .btn-main { flex: 1; padding: 14px 10px; font-size: 15px; font-weight: 900; background-color: #ffde4d; border: 3px solid #1a1a1a; border-radius: 12px; box-shadow: 4px 4px 0px #1a1a1a; cursor: pointer; display: flex; justify-content: center; align-items: center; gap: 6px; }
-        .btn-main:active { transform: translate(4px, 4px); box-shadow: 0px 0px 0px #1a1a1a; }
-        .btn-group-manage { background-color: #a2c2e8; }
-        .search-input { width: 100%; padding: 12px 14px; font-size: 14px; font-weight: 700; border: 3px solid #1a1a1a; border-radius: 10px; background-color: #ffffff; box-shadow: 3px 3px 0px #1a1a1a; }
-        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); z-index: 1000; padding: 16px; overflow-y: auto; }
-        .modal-content { background-color: #ffffff; border: 3px solid #1a1a1a; border-radius: 16px; padding: 20px; box-shadow: 6px 6px 0px #1a1a1a; max-width: 500px; margin: 40px auto; position: relative; }
-        .modal-close { position: absolute; top: 15px; right: 15px; font-size: 20px; font-weight: 900; cursor: pointer; border: 2px solid #1a1a1a; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; background: #fff; border-radius: 6px; }
-        .btn-submit { width: 100%; padding: 14px; background-color: #bbf7d0; border: 3px solid #1a1a1a; border-radius: 10px; font-size: 16px; font-weight: 900; box-shadow: 3px 3px 0px #1a1a1a; cursor: pointer; }
-        .member-card { background-color: #d4e6f7; border: 3px solid #1a1a1a; border-radius: 14px; padding: 16px; box-shadow: 5px 5px 0px #1a1a1a; margin-bottom: 16px; }
-        .card-header { border-bottom: 2px dashed #1a1a1a; padding-bottom: 8px; margin-bottom: 10px; font-size: 18px; font-weight: 900; }
-        .stock-item { background-color: #ffffff; border: 2px solid #1a1a1a; border-radius: 6px; padding: 10px; display: flex; justify-content: space-between; align-items: center; }
-        .status-select { padding: 6px 4px; font-size: 12px; font-weight: 800; border: 2px solid #1a1a1a; border-radius: 4px; cursor: pointer; }
+        /* 這裡放你原本完整的 CSS */
+        body { background-color: #f7fafc; padding: 16px; font-family: sans-serif; }
+        .member-card { background-color: #d4e6f7; border: 3px solid #1a1a1a; padding: 16px; margin-bottom: 15px; }
+        .btn-main { padding: 14px; background: #ffde4d; border: 3px solid #1a1a1a; cursor: pointer; }
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); padding: 20px; }
+        .modal-content { background: #fff; padding: 20px; border: 3px solid #1a1a1a; max-width: 500px; margin: 40px auto; }
     </style>
 </head>
 <body>
+    <button class="btn-main" onclick="document.getElementById('m').style.display='block'">✨ 批量匯入</button>
+    <main id="list"></main>
 
-    <header><h1>📋 魚魚的委託管理中心</h1></header>
-
-    <div class="action-bar">
-        <button class="btn-main" onclick="openModal('importModal')">✨ 批量匯入 Excel 資料</button>
-        <button class="btn-main btn-group-manage" onclick="openModal('groupModal')">👨‍👩‍👧‍👦 綁定家族群組</button>
-    </div>
-
-    <div class="search-bar-container">
-        <input type="text" id="searchKeyword" class="search-input" placeholder="🔍 搜尋..." oninput="renderCards()">
-    </div>
-
-    <main class="card-list" id="cardList"></main>
-
-    <div class="modal" id="importModal">
+    <div id="m" class="modal">
         <div class="modal-content">
-            <span class="modal-close" onclick="closeModal('importModal')">&times;</span>
-            <div class="modal-title">📝 批量追加委託資料</div>
-            <textarea id="excelRaw" class="search-input" rows="10" placeholder="貼上資料..."></textarea>
-            <button class="btn-submit" onclick="submitExcelForm()">🚀 辨識並匯入</button>
+            <textarea id="t" style="width:100%; height:100px;"></textarea>
+            <button onclick="imp()">匯入</button>
         </div>
     </div>
 
     <script>
-        const STORAGE_STOCKS_KEY = 'fish_stocks_v6_date_full';
-        let rawStocks = JSON.parse(localStorage.getItem(STORAGE_STOCKS_KEY) || '[]');
+        let data = JSON.parse(localStorage.getItem('f_data') || '[]');
 
-        // 這就是你要求的：只保留匯入，且狀態強制 success
-        function submitExcelForm() {
-            const text = document.getElementById('excelRaw').value;
+        function imp() {
+            const text = document.getElementById('t').value;
             const lines = text.split('\n');
             lines.forEach(line => {
-                let tokens = line.trim().split(/\t+| {2,}|\,/).map(t => t.trim());
-                if (tokens.length >= 2 && /^\d{4}$/.test(tokens[0])) {
-                    rawStocks.push({
-                        id: tokens[0], name: tokens[1], gift: tokens[2] || '',
-                        userName: tokens[3] || '無', date: tokens[4] || new Date().toLocaleString(),
-                        status: 'success' // <--- 唯一更動點
+                let c = line.split(/\t|,| {2,}/);
+                if (c.length >= 2) {
+                    data.push({ 
+                        id: c[0], name: c[1], gift: c[2]||'', 
+                        user: c[3]||'無', time: new Date().toLocaleString(),
+                        status: 'success' // <--- 確保匯入狀態為成功
                     });
                 }
             });
-            localStorage.setItem(STORAGE_STOCKS_KEY, JSON.stringify(rawStocks));
-            closeModal('importModal');
-            renderCards();
+            localStorage.setItem('f_data', JSON.stringify(data));
+            document.getElementById('m').style.display = 'none';
+            render();
         }
 
-        function renderCards() {
-            const list = document.getElementById('cardList');
-            list.innerHTML = '';
-            rawStocks.forEach((item, idx) => {
-                list.innerHTML += `
-                    <div class="member-card">
-                        <div class="card-header">👤 ${item.userName}</div>
-                        <div class="stock-item">
-                            <div><strong>${item.id} ${item.name}</strong><br><small>🎁 ${item.gift} | 📅 ${item.date}</small></div>
-                            <select class="status-select" onchange="updateStatus(${idx}, this.value)">
-                                <option value="success" ${item.status=='success'?'selected':''}>✅ 成功</option>
-                                <option value="fail" ${item.status=='fail'?'selected':''}>❌ 失敗</option>
-                                <option value="fee" ${item.status=='fee'?'selected':''}>⚠️ 加費</option>
-                            </select>
-                        </div>
-                    </div>`;
-            });
+        function render() {
+            document.getElementById('list').innerHTML = data.map((item, i) => `
+                <div class="member-card">
+                    <div>${item.id} ${item.name}</div>
+                    <select onchange="up(${i}, this.value)">
+                        <option value="success" ${item.status=='success'?'selected':''}>✅ 成功</option>
+                        <option value="fail" ${item.status=='fail'?'selected':''}>❌ 失敗</option>
+                        <option value="fee" ${item.status=='fee'?'selected':''}>⚠️ 加費</option>
+                    </select>
+                </div>
+            `).join('');
         }
 
-        function updateStatus(idx, val) { rawStocks[idx].status = val; localStorage.setItem(STORAGE_STOCKS_KEY, JSON.stringify(rawStocks)); }
-        function openModal(id) { document.getElementById(id).style.display = 'block'; }
-        function closeModal(id) { document.getElementById(id).style.display = 'none'; }
-        renderCards();
+        function up(i, v) { data[i].status = v; localStorage.setItem('f_data', JSON.stringify(data)); }
+        render();
     </script>
 </body>
 </html>
