@@ -2,63 +2,92 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <title>魚魚的委託管理系統 (家族版)</title>
+    <title>魚魚的委託管理系統 (雲端同步版)</title>
     <style>
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, sans-serif; }
         body { background-color: #f7fafc; padding: 16px; color: #1a1a1a; max-width: 600px; margin: 0 auto; }
+        .action-bar { display: flex; gap: 8px; margin-bottom: 16px; }
+        .btn-main { flex: 1; padding: 12px; font-weight: 900; background-color: #ffde4d; border: 3px solid #1a1a1a; border-radius: 12px; cursor: pointer; color: #000 !important; }
         .member-card { background-color: #d4e6f7; border: 3px solid #1a1a1a; border-radius: 14px; padding: 16px; margin-bottom: 15px; box-shadow: 5px 5px 0px #1a1a1a; }
         .stock-item { background: #fff; padding: 10px; border: 2px solid #000; margin-top: 8px; }
-        .btn-main { padding: 12px; font-weight: 900; background-color: #ffde4d; border: 3px solid #1a1a1a; border-radius: 12px; cursor: pointer; }
+        .status-select { padding: 6px; font-weight: 900; border: 2px solid #1a1a1a; cursor: pointer; }
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; padding: 16px; }
+        .modal-content { background: #fff; border: 3px solid #1a1a1a; padding: 20px; max-width: 500px; margin: 40px auto; border-radius: 16px; }
     </style>
 </head>
 <body>
+
     <h1>📋 魚魚的委託管理中心</h1>
-    <div style="margin-bottom:16px;">
-        <button class="btn-main" onclick="location.reload()">🔄 同步雲端</button>
+    <div class="action-bar">
+        <button class="btn-main" onclick="document.getElementById('m').style.display='block'">✨ 批量匯入</button>
+        <button class="btn-main" style="background:#a2c2e8;" onclick="location.reload()">🔄 同步雲端</button>
     </div>
-    <div id="stats" style="font-weight:bold;"></div>
+
+    <div id="stats" style="font-weight:bold; margin-bottom:10px;">資料載入中...</div>
+    <input type="text" id="search" style="width:100%; padding:10px; border:3px solid #1a1a1a; border-radius:10px;" placeholder="🔍 搜尋..." oninput="displayData()">
     <main id="list"></main>
 
+    <div id="m" class="modal"><div class="modal-content">
+        <h3>📝 批量匯入 (Excel 貼上)</h3>
+        <textarea id="t" style="width:100%; height:120px; border:2px solid #1a1a1a; padding:10px;"></textarea>
+        <button class="btn-main" style="width:100%; background:#bbf7d0;" onclick="imp()">🚀 確認匯入</button>
+    </div></div>
+
     <script>
-        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbx9mo8aRflpbIH0tuNhzijZpdLp4paZKOUWUCFWXbBhv_svtdaXPmOk7PN8ER8_opZa/exec";
+        // 【請務必填入你自己的 Google Web App URL】
+        const WEB_APP_URL = "填入你的網址在這裡";
         let rawData = [];
 
         async function init() {
-            const res = await fetch(WEB_APP_URL);
-            rawData = await res.json();
-            displayData();
+            try {
+                const res = await fetch(WEB_APP_URL);
+                rawData = await res.json();
+                displayData();
+            } catch(e) { document.getElementById('stats').innerText = "讀取失敗，請確認網址是否正確"; }
         }
 
         function displayData() {
-            const dataRows = rawData.slice(1);
+            const kw = document.getElementById('search').value.toLowerCase();
+            const dataRows = rawData.slice(1).filter(r => (r[0]+r[1]+r[3]).toLowerCase().includes(kw));
             document.getElementById('stats').innerText = `總計：${dataRows.length} 筆`;
             
             const groups = {};
             dataRows.forEach((r) => {
-                // 如果 G 欄 (r[6]) 有資料就用家族名稱，沒有就用個人名 (r[3])
-                const groupName = r[6] || r[3]; 
-                if(!groups[groupName]) groups[groupName] = [];
-                groups[groupName].push({ id:r[0], name:r[1], user:r[3], time:r[4], status:r[5] });
+                const g = r[6] || r[3]; // G欄是家族，沒有就用人名
+                if(!groups[g]) groups[g] = [];
+                let d = r[4];
+                if (typeof d === 'string' && d.includes('T')) d = new Date(d).toLocaleString();
+                groups[g].push({ id:r[0], name:r[1], gift:r[2], time:d, status:r[5], user:r[3] });
             });
 
             document.getElementById('list').innerHTML = Object.keys(groups).map(g => `
                 <div class="member-card">
-                    <div style="font-weight:900; border-bottom:2px dashed #000;">🏠 家族：${g}</div>
+                    <div style="font-weight:900; border-bottom:2px dashed #000; margin-bottom:10px;">🏠 家族：${g} (${groups[g].length}筆)</div>
                     ${groups[g].map(item => `
                         <div class="stock-item">
-                            <div><strong>${item.id} ${item.name}</strong> (👤 ${item.user})</div>
-                            <input type="text" placeholder="設定家族名稱" onchange="setGroup('${item.id}', '${item.time}', this.value)" style="width:100px; margin-top:5px;">
+                            <div><strong>${item.id} ${item.name}</strong> 👤${item.user}<br><small>🎁 ${item.gift} | 📅 ${item.time}</small></div>
+                            <input type="text" placeholder="修改家族名" onchange="setGroup('${item.id}', '${item.time}', this.value)" style="width:80px; margin-top:5px;">
+                            <select class="status-select" onchange="up('${item.id}', '${item.time}', this.value)">
+                                <option value="success" ${item.status=='success'?'selected':''}>✅ 成功</option>
+                                <option value="fail" ${item.status=='fail'?'selected':''}>❌ 失敗</option>
+                            </select>
                         </div>
                     `).join('')}
                 </div>
             `).join('');
         }
 
-        // 修改 Apps Script 後端函數，讓這裡能把家族名稱寫入 G 欄
-        async function setGroup(id, time, groupName) {
-            await fetch(WEB_APP_URL, { method: 'POST', body: JSON.stringify({ type:'setGroup', id, time, groupName }) });
-            alert('已設定至：' + groupName);
+        async function imp() {
+            const lines = document.getElementById('t').value.split('\n');
+            for(let line of lines) {
+                let c = line.split(/\t|,/);
+                if(c.length >= 2) await fetch(WEB_APP_URL, { method: 'POST', body: JSON.stringify({ type:'add', id:c[0], name:c[1], gift:c[2]||'無', user:c[3]||'無', time:new Date().toLocaleString(), status:'success' }) });
+            }
+            alert('匯入完成！'); location.reload();
         }
+
+        async function up(id, time, val) { await fetch(WEB_APP_URL, { method: 'POST', body: JSON.stringify({ type:'update', id:id, time:time, status:val }) }); }
+        async function setGroup(id, time, groupName) { await fetch(WEB_APP_URL, { method: 'POST', body: JSON.stringify({ type:'setGroup', id, time, groupName }) }); location.reload(); }
         
         init();
     </script>
